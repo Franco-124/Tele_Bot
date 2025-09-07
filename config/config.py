@@ -8,4 +8,5 @@ class config:
     gemini_api_key = os.getenv("GEMINI_API_KEY", None)
     db_user = os.getenv("DB_USER", None)
     db_password = os.getenv("DB_PASSWORD", None)
+    TOKEN = os.getenv("TOKEN", None)
 

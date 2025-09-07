@@ -1,4 +1,9 @@
 
+import logging
+
+logging.basicConfig(level=logging.INFO)
+logger = logging.getLogger(__name__)
+
 from openai import OpenAI
 from config.config import config
 
@@ -6,7 +11,7 @@ class ModelInvoker:
     def __init__ (self, message):
         self.message = message
         self.temp = 0.0
-        self.model = "gpt-4.1-mini"
+        self.model = "gpt-5-nano"
         self.config = config()
         self.prompt = self.build_prompt()
     
@@ -34,6 +39,7 @@ class ModelInvoker:
             return response
         
         except Exception as e:
+            logger.error(f"Error invoking model: {e}")
             return {"error": str(e)}
     
 
@@ -53,15 +59,19 @@ class ModelInvoker:
                 {"role": "user", "content": self.prompt},
             ],
             )
+            logger.info(f"Response from OpenAI: {response}")
             return response.choices[0].message.content
         
         except TimeoutError as e:
+            logger.error(f"Timeout error {e}")
             raise TimeoutError(f"Timeout error {e}")
         
         except ValueError as e:
+            logger.error(f"Value error {e}")
             raise ValueError(f"Value error {e}")
         
         except Exception as e:
+            logger.error(f"Error invoking OpenAI: {e}")
             raise e
         
     def invoke_google(self, history):

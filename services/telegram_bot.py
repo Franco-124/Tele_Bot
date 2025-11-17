@@ -5,6 +5,7 @@ sys.path.append(os.path.abspath(os.path.join(os.path.dirname(__file__), "..")))
 from services.process import ProcessRequest
 from config.config import config
 import logging
+import uuid
 
 logging.basicConfig(
     format='%(asctime)s - %(name)s - %(levelname)s - %(message)s',
@@ -15,13 +16,21 @@ logger = logging.getLogger(__name__)
 TOKEN = config.TOKEN
 logger.info(f"Token: {TOKEN}")
 
+def generate_session_id():
+    return str(uuid.uuid4())
+
 async def start(update, context):
+    session_id = generate_session_id()
+    context.user_data["session_id"] = session_id
     await update.message.reply_text("¡Hola! Soy tu asistente 🤖. Escríbeme algo.")
 
 async def handle_message(update, context):
     user_input = update.message.text
-    procces = ProcessRequest(user_input)
+    chat_id = update.effective_chat.id  
+
+    procces = ProcessRequest(user_query=user_input, chat_id=chat_id)
     response = procces.process_request()
+
     await update.message.reply_text(response)
 
 def main():

@@ -8,8 +8,8 @@ from openai import OpenAI
 from config.config import config
 
 class ModelInvoker:
-    def __init__ (self, message):
-        self.message = message
+    def __init__ (self, user_query):
+        self.user_query = user_query
         self.temp = 0.0
         self.model = "gpt-5-nano"
         self.config = config()
@@ -55,8 +55,9 @@ class ModelInvoker:
             response = client.chat.completions.create(
             model=self.model,
             messages=[
-                {"role": "system", "content": self.message},
-                {"role": "user", "content": self.prompt},
+                {"role": "system", "content": self.prompt},
+                {"role": "assistant", "content": history},
+                {"role": "user", "content": self.user_query},
             ],
             )
             logger.info(f"Response from OpenAI: {response}")

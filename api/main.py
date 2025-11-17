@@ -9,12 +9,11 @@ import uvicorn
 sys.path.append(os.path.abspath(os.path.join(os.path.dirname(__file__), "..")))
 from models.schemas import RequestModel, AnswerModel, ErrorModel
 from services.process import ProcessRequest
-from config.config import config
 
 app = FastAPI( title="Telegram Bot", 
     description="Telegram Bot to recevive and send messages")
 
-# --- Definicion de Endpoints --- 
+
 @app.get("/Health", summary="Health Check", description="Check if the server is running")
 async def health():
     return {"status": "OK", "message": "Server is running"}

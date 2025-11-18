@@ -31,12 +31,12 @@ class ModelInvoker:
                 raise ValueError("Provider is required")
             
             if provider == "openai":
-                response = self.invoke_open_ai(history)
+                response, total_tokens = self.invoke_open_ai(history)
             
             elif provider == "google":
-                response = self.invoke_google(history)
+                response, total_tokens = self.invoke_google(history)
             
-            return response
+            return response, total_tokens
         
         except Exception as e:
             logger.error(f"Error invoking model: {e}")
@@ -61,7 +61,7 @@ class ModelInvoker:
             ],
             )
             logger.info(f"Response from OpenAI: {response}")
-            return response.choices[0].message.content
+            return response.choices[0].message.content , response.usage.total_tokens
         
         except TimeoutError as e:
             logger.error(f"Timeout error {e}")
@@ -76,4 +76,4 @@ class ModelInvoker:
             raise e
         
     def invoke_google(self, history):
-        return "Model is not currently available"
+        return "Model is not currently available", 0

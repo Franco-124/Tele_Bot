@@ -3,10 +3,12 @@ from db.sql import db
 
 class DbController:
 
-    @staticmethod
-    def save_message(chat_id, role, content, total_tokens):
-        db.save_message(chat_id, role, content, total_tokens)
+    def __init__ (self):
+        self.db = db()
 
-    @staticmethod
-    def get_history(chat_id):
-        return db.get_history(chat_id)
+    def save_message(self, chat_id, role, content, total_tokens):
+        self.db.save_message(chat_id, role, content, total_tokens)
+
+
+    def get_history(self, chat_id):
+        return self.db.get_history(chat_id)

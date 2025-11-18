@@ -28,6 +28,9 @@ async def handle_message(update, context):
     user_input = update.message.text
     chat_id = update.effective_chat.id  
 
+    logger.info(f"User input: {user_input}")
+    logger.info(f"Chat id: {chat_id}")
+
     procces = ProcessRequest(user_query=user_input, chat_id=chat_id)
     response = procces.process_request()
 

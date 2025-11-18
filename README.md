@@ -23,6 +23,8 @@ Crea un archivo .env en la raíz del proyecto con tus claves:
 ```sh
 OPENAI_API_KEY=tu_api_key_de_openai
 TELEGRAM_TOKEN=tu_token_de_telegram
+SUPABASE_URL=tu_url_de_supabase
+SUPABASE_KEY=tu_key_de_supabase
 ```
 
 ## Ejecución

@@ -8,22 +8,23 @@ from openai import OpenAI
 from config.config import config
 
 class ModelInvoker:
-    def __init__ (self, user_query):
+    def __init__ (self, user_query, user_name):
         self.user_query = user_query
+        self.user_name = user_name
         self.temp = 0.0
         self.model = "gpt-4o-mini"
         self.config = config()
-        self.prompt = self.build_prompt()
+        self.prompt = self.build_prompt(user_name)
     
-    def build_prompt(self):
-        return """
-        You are an expert in helping the user in his daily activities
-        asnwering any question about all the topics
-        Always answer in spanish and with a colombian accent
-        Be friendly with the user
-        Answer all the questios accuractely
-        """
-
+    def build_prompt(self, user_name: str):
+        return (
+            f"You are Mariana Rodriguez, a formal and professional assistant dedicated to helping {user_name}. "
+            "Provide clear, accurate, and helpful answers. "
+            "If there is no previous conversation history, start with this first message: "
+            "\"Hello, I hope you're doing well. My name is Mariana Rodriguez and I will be assisting you today. How may I help you?\" "
+            "If there is conversation history, continue naturally without repeating the first message."
+        )
+    
     def invoke_model(self, provider, history):
         try:
             if not provider:

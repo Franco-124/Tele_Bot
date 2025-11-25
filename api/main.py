@@ -59,7 +59,12 @@ async def telegram_webhook(request: Request):
             return {"ok": True}
 
 
-        procesador = ProcessRequest(user_query=user_input, chat_id=chat_id)
+        first_name = message["from"]["first_name"]
+        last_name = message["from"].get("last_name") 
+        username = first_name + " " + last_name
+ 
+
+        procesador = ProcessRequest(user_query=user_input, chat_id=chat_id, user_name = username)
         response_text = procesador.process_request()
 
 

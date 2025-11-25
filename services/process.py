@@ -10,17 +10,18 @@ from provider.model_invoker import ModelInvoker
 from controller.db_controller import DbController
 
 class ProcessRequest:
-    def __init__(self, user_query: str, chat_id: str):
+    def __init__(self, user_query: str, chat_id: str, user_name: str):
         self.user_query = user_query
         self.chat_id = chat_id
-        self.model_invoker = ModelInvoker(user_query=self.user_query)
+        self.user_name = user_name
+        self.model_invoker = ModelInvoker(user_query=self.user_query, user_name=self.user_name)
         self.db_controller = DbController()
 
     def process_request(self):
         try:
             history = self.get_history_from_db()
-            logger.info(f"Invoking model with message {self.user_query} and history {history}")
-            response, total_tokens = self.model_invoker.invoke_model(provider="openai", history=history)
+            logger.info(f"Invoking model with message {self.user_query} and history {history} and user name {self.user_name}")
+            response, total_tokens = self.model_invoker.invoke_model(provider="openai", history=history , user_name=self.user_name)
             if "error" in response:
                 return "Hubo un error tratando de dar respuesta a la solicitud, Por favor intente de nuevo mas tarde"
             

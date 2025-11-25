@@ -11,11 +11,10 @@ class ModelInvoker:
     def __init__ (self, user_query):
         self.user_query = user_query
         self.temp = 0.0
-        self.model = "gpt-5-nano"
+        self.model = "gpt-4o-mini"
         self.config = config()
         self.prompt = self.build_prompt()
     
-
     def build_prompt(self):
         return """
         You are an expert in helping the user in his daily activities
@@ -45,32 +44,28 @@ class ModelInvoker:
 
     def invoke_open_ai(self, history):
         try:
-
             api_key = self.config.open_ai_key
             if not api_key:
                 raise ValueError("OpenAI API key is required")
-            
+
             client = OpenAI(api_key=api_key)
 
-            response = client.chat.completions.create(
-            model=self.model,
-            messages=[
-                {"role": "system", "content": self.prompt},
-                {"role": "assistant", "content": history},
-                {"role": "user", "content": self.user_query},
-            ],
+
+            full_input = f"{self.prompt}\n\nHistorial:\n{history or ''}\n\nUsuario:\n{self.user_query}"
+
+            response = client.responses.create(
+                model=self.model,
+                input=full_input,
+                temperature=self.temp
             )
+
             logger.info(f"Response from OpenAI: {response}")
-            return response.choices[0].message.content , response.usage.total_tokens
-        
-        except TimeoutError as e:
-            logger.error(f"Timeout error {e}")
-            raise TimeoutError(f"Timeout error {e}")
-        
-        except ValueError as e:
-            logger.error(f"Value error {e}")
-            raise ValueError(f"Value error {e}")
-        
+
+            output_text = response.output[0].content[0].text
+            total_tokens = getattr(response.usage, "total_tokens", None)
+
+            return output_text, total_tokens
+
         except Exception as e:
             logger.error(f"Error invoking OpenAI: {e}")
             raise e

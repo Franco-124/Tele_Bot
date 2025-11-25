@@ -1,46 +1,86 @@
 import os
 import sys
-from fastapi import FastAPI
-from fastapi import HTTPException
-from fastapi.responses import JSONResponse, RedirectResponse
-from typing import List, Dict
-import uvicorn
+import logging
+import httpx
+
+from fastapi import FastAPI, Request, HTTPException
+from fastapi.responses import JSONResponse
+
+from dotenv import load_dotenv
+load_dotenv()
 
 sys.path.append(os.path.abspath(os.path.join(os.path.dirname(__file__), "..")))
 from models.schemas import RequestModel, AnswerModel, ErrorModel
 from services.process import ProcessRequest
 
-app = FastAPI( title="Telegram Bot", 
-    description="Telegram Bot to recevive and send messages")
+logging.basicConfig(level=logging.INFO)
+logger = logging.getLogger(__name__)
 
+OPENAI_API_KEY = os.getenv("OPEN_API_KEY")
+TELEGRAM_TOKEN = os.getenv("TOKEN")
+SUPABASE_URL = os.getenv("SUPABASE_URL")
+SUPABASE_KEY = os.getenv("SUPABASE_KEY")
 
-@app.get("/Health", summary="Health Check", description="Check if the server is running")
+if not OPENAI_API_KEY:
+    logger.error("Variable de entorno OPEN_API_KEY no definida")
+    raise RuntimeError("OPEN_API_KEY is required")
+if not TELEGRAM_TOKEN:
+    logger.error("Variable de entorno TOKEN no definida")
+    raise RuntimeError("TOKEN is required")
+
+TELEGRAM_API_URL = f"https://api.telegram.org/bot{TELEGRAM_TOKEN}"
+
+app = FastAPI(
+    title="Telegram Bot via Webhook",
+    description="Recibe mensajes de Telegram y responde"
+)
+
+@app.get("/health", summary="Health Check")
 async def health():
     return {"status": "OK", "message": "Server is running"}
 
-@app.post("/process", summary="Procceses the user request", description="Processes the user query and returns an answer")
-async def process(req: RequestModel):
+@app.post("/webhook", summary="Telegram updates endpoint")
+async def telegram_webhook(request: Request):
     try:
+        update = await request.json()
+        logger.info(f"Update recibido: {update}")
 
-        if not req.message:
-            return JSONResponse(status_code=400, content={"error": "Message is required"} )
-        
-        procces = ProcessRequest(req.message)
-        response = procces.process_request()
-        return AnswerModel(answer=response)
-    
-    except HTTPException as http:
-        return JSONResponse(status_code=http.status_code, content={"error": http.detail})
-    
-    except TimeoutError as e:
-        return JSONResponse(status_code=400,content={"error": f"Timeout error {e}"})
-    
-    except ValueError as e:
-        return JSONResponse(status_code=402,content={"error": f"Value error {e}"})
-    
-    except Exception as e:
-        return JSONResponse(status_code=500,content={"error": f"Internal server error {e}"})
-    
+        message = update.get("message")
+        if not message:
+            return JSONResponse(status_code=400, content={"error": "No message field in update"})
 
-uvicorn.run(app, host="127.0.0.1", port=8000) if __name__ == "__main__" else None   
+        chat_id = message["chat"]["id"]
+        user_input = message.get("text", "")
+
+        if not user_input:
+            await send_reply(chat_id, "Lo siento, sólo puedo procesar texto por ahora.")
+            return {"ok": True}
+
+
+        procesador = ProcessRequest(user_query=user_input, chat_id=chat_id)
+        response_text = procesador.process_request()
+
+
+        await send_reply(chat_id, response_text)
+
+        return {"ok": True}
+
+    except HTTPException as http_exc:
+        logger.error(f"HTTPException: {http_exc.detail}")
+        return JSONResponse(status_code=http_exc.status_code, content={"error": http_exc.detail})
+
+    except Exception as exc:
+        logger.error(f"Error en webhook: {exc}")
+        return JSONResponse(status_code=500, content={"error": str(exc)})
+
+async def send_reply(chat_id: int, text: str):
+    url = f"{TELEGRAM_API_URL}/sendMessage"
+    payload = {
+        "chat_id": chat_id,
+        "text": text
+    }
+    async with httpx.AsyncClient() as client:
+        resp = await client.post(url, json=payload)
+        if resp.status_code != 200:
+            logger.error(f"Error enviando mensaje a Telegram: {resp.text}")
 

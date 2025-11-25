@@ -6,6 +6,7 @@ import httpx
 from fastapi import FastAPI, Request, HTTPException
 from fastapi.responses import JSONResponse
 
+
 from dotenv import load_dotenv
 load_dotenv()
 
@@ -15,6 +16,7 @@ from services.process import ProcessRequest
 
 logging.basicConfig(level=logging.INFO)
 logger = logging.getLogger(__name__)
+
 
 OPENAI_API_KEY = os.getenv("OPEN_API_KEY")
 TELEGRAM_TOKEN = os.getenv("TOKEN")
@@ -84,3 +86,7 @@ async def send_reply(chat_id: int, text: str):
         if resp.status_code != 200:
             logger.error(f"Error enviando mensaje a Telegram: {resp.text}")
 
+if __name__ == "__main__":
+    import uvicorn
+    port = int(os.getenv("PORT", 8000))
+    uvicorn.run(app, host="0.0.0.0", port=port)

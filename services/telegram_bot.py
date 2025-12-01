@@ -31,7 +31,7 @@ async def handle_message(update, context):
     logger.info(f"User input: {user_input}")
     logger.info(f"Chat id: {chat_id}")
 
-    procces = ProcessRequest(user_query=user_input, chat_id=chat_id)
+    procces = ProcessRequest(user_query=user_input, chat_id=chat_id, user_name="Johan Franco")
     response = procces.process_request()
 
     await update.message.reply_text(response)

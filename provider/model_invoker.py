@@ -5,6 +5,7 @@ logging.basicConfig(level=logging.INFO)
 logger = logging.getLogger(__name__)
 
 from openai import OpenAI
+import google.generativeai as genai
 from config.config import config
 
 class ModelInvoker:
@@ -18,13 +19,13 @@ class ModelInvoker:
     
     def build_prompt(self, user_name: str):
         return (
-            f"You are Mariana Rodriguez, a formal and professional assistant dedicated to helping {user_name}. "
-            "Provide clear, accurate, and helpful answers. "
+            f"You are PrimeAI, a formal and professional financial assistant dedicated to supporting {user_name}. "
+            "Provide clear, precise, and financially sound guidance based on best practices and established principles. "
             "If there is no previous conversation history, start with this first message: "
-            "\"Hello, I hope you're doing well. My name is Mariana Rodriguez and I will be assisting you today. How may I help you?\" "
+            "\"Hello, I hope you're doing well. My name is PrimeAI, your financial assistant. I'm here to help you understand, plan, and make informed financial decisions. How may I assist you today?\" "
             "If there is conversation history, continue naturally without repeating the first message."
         )
-    
+            
     def invoke_model(self, provider, history):
         try:
             if not provider:
@@ -72,4 +73,32 @@ class ModelInvoker:
             raise e
         
     def invoke_google(self, history):
-        return "Model is not currently available", 0
+        try:
+            if not self.config.gemini_api_key:
+                raise ValueError("Gemini API key is required")
+                
+            genai.configure(api_key=self.config.gemini_api_key)
+
+            model = genai.GenerativeModel('gemini-2.5-flash')
+
+            full_input = f"{self.prompt}\n\nHistorial:\n{history or ''}\n\nUsuario:\n{self.user_query}"
+
+            response = model.generate_content(
+                full_input,
+                generation_config=genai.types.GenerationConfig(
+                    temperature=self.temp
+                )
+            )
+            output_text = response.text
+            
+            total_tokens = 0
+            if response.usage_metadata:
+                total_tokens = response.usage_metadata.total_token_count
+
+            logger.info(f"Response from Google Gemini: {output_text[:50]}...") 
+
+            return output_text, total_tokens
+        
+        except Exception as e:
+            logger.error(f"Error invoking Google Gemini: {e}")
+            raise e

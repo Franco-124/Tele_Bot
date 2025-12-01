@@ -8,6 +8,7 @@ logger = logging.getLogger(__name__)
 
 from provider.model_invoker import ModelInvoker
 from controller.db_controller import DbController
+from config.config import config
 
 class ProcessRequest:
     def __init__(self, user_query: str, chat_id: str, user_name: str):
@@ -21,7 +22,7 @@ class ProcessRequest:
         try:
             history = self.get_history_from_db()
             logger.info(f"Invoking model with message {self.user_query} and history {history} and user name {self.user_name}")
-            response, total_tokens = self.model_invoker.invoke_model(provider="openai", history=history)
+            response, total_tokens = self.model_invoker.invoke_model(provider=config.provider, history=history)
             if "error" in response:
                 return "Hubo un error tratando de dar respuesta a la solicitud, Por favor intente de nuevo mas tarde"
             

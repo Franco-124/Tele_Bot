@@ -5,3 +5,4 @@ python-dotenv
 python-telegram-bot
 supabase
 openai
+google-generativeai

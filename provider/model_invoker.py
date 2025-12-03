@@ -18,7 +18,7 @@ class ModelInvoker:
         self.prompt = self.build_prompt(user_name)
     
 
-    def user_settings (self):
+    def user_settings(self):
         try:
             return {
                 "emoji": True,
@@ -31,7 +31,7 @@ class ModelInvoker:
             raise e
 
     def build_prompt(self, user_name: str):
-        settings = self.get_user_settings()
+        settings = self.user_settings()
         emoji = settings.get("emoji", True)
         language = settings.get("language", "spanish")
         tone = settings.get("tone", "formal")

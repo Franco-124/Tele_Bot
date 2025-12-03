@@ -17,11 +17,30 @@ class ModelInvoker:
         self.config = config()
         self.prompt = self.build_prompt(user_name)
     
+
+    def user_settings (self):
+        try:
+            return {
+                "emoji": True,
+                "language": "spanish",
+                "tone": "formal",
+            }
+        
+        except Exception as e:
+            logger.error(f"Error retrieving user settings: {e}")
+            raise e
+
     def build_prompt(self, user_name: str):
+        settings = self.get_user_settings()
+        emoji = settings.get("emoji", True)
+        language = settings.get("language", "spanish")
+        tone = settings.get("tone", "formal")
         return (
             f"You are PrimeAI, a formal and professional financial assistant dedicated to supporting {user_name}. "
             "Provide clear, precise, and financially sound guidance based on best practices and established principles. "
             "If there is no previous conversation history, start with this first message: "
+            f"{'Use emojis in your responses ' if emoji else 'Do not use emojis in your responses '}"
+            f"ALWAYS Respond in {language} with a {tone} tone. "
             "\"Hello, I hope you're doing well. My name is PrimeAI, your financial assistant. I'm here to help you understand, plan, and make informed financial decisions. How may I assist you today?\" "
             "If there is conversation history, continue naturally without repeating the first message."
         )
